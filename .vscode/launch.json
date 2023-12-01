@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Subfolder Program",
+            "type": "go",
+            "request": "launch",
+            "program": "${workspaceFolder}/${input:subfolder}/main.go",
+            "cwd": "${workspaceFolder}/${input:subfolder}",
+            "env": {},
+            "args": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "subfolder",
+            "type": "promptString",
+            "description": "Enter the subfolder path relative to the workspace root where main.go is located",
+            "default": "2023/day1"
+        }
+    ]
+}
