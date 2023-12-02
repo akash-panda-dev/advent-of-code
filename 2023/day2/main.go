@@ -35,10 +35,12 @@ type Cube struct {
 	green int
 }
 
-func (cube *Cube) updateMaxValue(inputCube Cube) {
-	cube.red = int(math.Max(float64(cube.red), float64(inputCube.red)))
-	cube.green = int(math.Max(float64(cube.green), float64(inputCube.green)))
-	cube.blue = int(math.Max(float64(cube.blue), float64(inputCube.blue)))
+func (cube *Cube) updateMaxValue(inputCubeSet string) {
+	parsedCube := parseCube(inputCubeSet)
+
+	cube.red = int(math.Max(float64(cube.red), float64(parsedCube.red)))
+	cube.green = int(math.Max(float64(cube.green), float64(parsedCube.green)))
+	cube.blue = int(math.Max(float64(cube.blue), float64(parsedCube.blue)))
 }
 
 func (cube *Cube) getPower() int {
@@ -46,7 +48,7 @@ func (cube *Cube) getPower() int {
 }
 
 // Input example: " 2 red, 2 green"
-func parseCubes(input string) Cube {
+func parseCube(input string) Cube {
 	cubes := strings.Split(input, ",")
 	parsedCube := Cube{}
 
@@ -86,7 +88,6 @@ func processGames(games []string) (int, int) {
 	var gamesPower int
 
 	for gameNum, game := range games {
-		var isFeasibleGame bool = true
 		maxCube := Cube{
 			red: -1,
 			green: -1,
@@ -99,16 +100,10 @@ func processGames(games []string) (int, int) {
 		cubeSets := strings.Split(cubeSetString, ";")
 		// 2 red, 2 green - 6 red, 3 green - 2 red, 1 green, 2 blue - 1 red
 		for _, cubeSet := range cubeSets {
-			cube := parseCubes(cubeSet)
-			maxCube.updateMaxValue(cube)
-			
-			if !isValidCube(cube) {
-				isFeasibleGame = false
-				//break
-			}
+			maxCube.updateMaxValue(cubeSet)
 		}
 
-		if isFeasibleGame {
+		if isValidCube(maxCube) {
 			feasibleGamesSum += gameNum + 1
 		}
 
