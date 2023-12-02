@@ -8,14 +8,13 @@ import (
 	"strings"
 )
 
-
 func main() {
 	file, err := os.ReadFile("2023/day1/input.txt")
 
 	if err != nil {
 		log.Fatalf("Failed to read the file due to: %v", err)
 	}
-	
+
 	calibrations := strings.Split(string(file), "\n")
 	result, err := getTotalCalib(calibrations)
 
@@ -25,7 +24,6 @@ func main() {
 
 	fmt.Println("Final calibration: ", result)
 }
-
 
 var numberMap = map[string]string{
 	"one":   "1",
@@ -38,7 +36,6 @@ var numberMap = map[string]string{
 	"eight": "8",
 	"nine":  "9",
 }
-
 
 func findNumber(input string, findFromEnd bool) string {
 	var index = -1

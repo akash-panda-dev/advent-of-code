@@ -25,7 +25,7 @@ func main() {
 		result := part2(string(instructions))
 		fmt.Printf("Santa has reached the basement at position: %d", result)
 	}
-	
+
 }
 
 func part1(instructions string) int {

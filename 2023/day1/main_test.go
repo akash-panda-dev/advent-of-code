@@ -19,8 +19,8 @@ func TestGetTotalCalib(t *testing.T) {
 	}
 
 	result, err := getTotalCalib(calibrations)
-	
-	if err != nil{
+
+	if err != nil {
 		t.Error("Failed test")
 	}
 

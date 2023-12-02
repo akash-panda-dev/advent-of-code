@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -22,61 +21,66 @@ func main() {
 		log.Fatalf("cannot read the file due to : %v", err)
 	}
 
-	games := strings.Split(string(file), "\n")
-
-	feasibleGamesSum, gamesPower := processGames(games)
+	feasibleGamesSum, gamesPower := processGames(strings.Split(string(file), "\n"))
 
 	fmt.Printf("Sum of feasible games: %d and Games Power: %d", feasibleGamesSum, gamesPower)
 }
 
-type Cube struct {
+type GameSet struct {
 	red   int
 	blue  int
 	green int
 }
 
-func (cube *Cube) updateMaxValue(inputCubeSet string) {
-	parsedCube := parseCube(inputCubeSet)
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
 
-	cube.red = int(math.Max(float64(cube.red), float64(parsedCube.red)))
-	cube.green = int(math.Max(float64(cube.green), float64(parsedCube.green)))
-	cube.blue = int(math.Max(float64(cube.blue), float64(parsedCube.blue)))
+	return b
 }
 
-func (cube *Cube) getPower() int {
-	return cube.red * cube.blue * cube.green
+func (gameSet *GameSet) updateMaxColors(inputGameSetString string) {
+	parsedGameSet := parseGameSet(inputGameSetString)
+
+	gameSet.red = max(gameSet.red, parsedGameSet.red)
+	gameSet.green = max(gameSet.green, parsedGameSet.green)
+	gameSet.blue = max(gameSet.blue, parsedGameSet.blue)
+}
+
+func (gameSet *GameSet) getPower() int {
+	return gameSet.red * gameSet.blue * gameSet.green
 }
 
 // Input example: " 2 red, 2 green"
-func parseCube(input string) Cube {
-	cubes := strings.Split(input, ",")
-	parsedCube := Cube{}
+func parseGameSet(input string) GameSet {
+	inputGameSets := strings.Split(input, ",")
+	parsedGameSet := GameSet{}
 
-	for _, cube := range cubes {
+	for _, gameSet := range inputGameSets {
 		//" 2 red"
-		trimmedCube := strings.TrimSpace(cube)
-		cubeValues := strings.Split(trimmedCube, " ")
-		cubeCount, err := strconv.Atoi(cubeValues[0])
+		gameSetValues := strings.Split(strings.TrimSpace(gameSet), " ")
+		gameSetCount, err := strconv.Atoi(gameSetValues[0])
 
 		if err != nil {
-			log.Fatalf("Failed to parse cubes: %v", err)
+			log.Fatalf("Failed to parse gameSets: %v", err)
 		}
 
-		switch cubeValues[1] {
+		switch gameSetValues[1] {
 		case "red":
-			parsedCube.red = cubeCount
+			parsedGameSet.red = gameSetCount
 		case "green":
-			parsedCube.green = cubeCount
+			parsedGameSet.green = gameSetCount
 		case "blue":
-			parsedCube.blue = cubeCount
+			parsedGameSet.blue = gameSetCount
 		}
 	}
 
-	return parsedCube
+	return parsedGameSet
 }
 
-func isValidCube(cube Cube) bool {
-	if (cube.red > MAX_RED || cube.blue > MAX_BLUE || cube.green > MAX_GREEN) {
+func (gameSet *GameSet) isValidgameSet() bool {
+	if gameSet.red > MAX_RED || gameSet.blue > MAX_BLUE || gameSet.green > MAX_GREEN {
 		return false
 	}
 
@@ -85,30 +89,30 @@ func isValidCube(cube Cube) bool {
 
 func processGames(games []string) (int, int) {
 	var feasibleGamesSum int
-	var gamesPower int
+	var gamesPowerSum int
 
 	for gameNum, game := range games {
-		maxCube := Cube{
-			red: -1,
+		maxgameSet := GameSet{
+			red:   -1,
 			green: -1,
-			blue: -1,
+			blue:  -1,
 		}
 
-		cubeSetString := strings.Split(game, ":")[1]
+		gameSetString := strings.Split(game, ":")[1]
 		// Now we have this string:
 		// 2 red, 2 green; 6 red, 3 green; 2 red, 1 green, 2 blue; 1 red
-		cubeSets := strings.Split(cubeSetString, ";")
+		gameSets := strings.Split(gameSetString, ";")
 		// 2 red, 2 green - 6 red, 3 green - 2 red, 1 green, 2 blue - 1 red
-		for _, cubeSet := range cubeSets {
-			maxCube.updateMaxValue(cubeSet)
+		for _, gameSet := range gameSets {
+			maxgameSet.updateMaxColors(gameSet)
 		}
 
-		if isValidCube(maxCube) {
+		if maxgameSet.isValidgameSet() {
 			feasibleGamesSum += gameNum + 1
 		}
 
-		gamesPower += maxCube.getPower()
+		gamesPowerSum += maxgameSet.getPower()
 	}
 
-	return feasibleGamesSum, gamesPower
+	return feasibleGamesSum, gamesPowerSum
 }
