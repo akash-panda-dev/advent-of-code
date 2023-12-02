@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to read the file due to: %v", err)
 	}
-
+	
 	calibrations := strings.Split(string(file), "\n")
 
 	result, err := getTotalCalib(calibrations)
@@ -41,47 +41,37 @@ var numberMap = map[string]string{
 }
 
 
-func checkFirstInput(input string) (int, string) {
-	
+func findNumber(input string, findFromEnd bool) (int, string) {
+	var index = -1
+	var numStr string
 
-	var firstIndex = -1
-	var firstNumStr string
+	numbers := []string{"one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7", "eight", "8", "nine", "9"}
 
-	for _, numStr := range []string{"one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7", "eight", "8", "nine", "9"} {
-		index := strings.Index(input, numStr)
-		if index != -1 && (firstIndex == -1 || index < firstIndex) {
-			firstIndex = index
-			firstNumStr = numStr
+	for _, num := range numbers {
+		var idx int
+		if findFromEnd {
+			idx = strings.LastIndex(input, num)
+		} else {
+			idx = strings.Index(input, num)
+		}
+
+		if idx != -1 && (index == -1 || (findFromEnd && idx > index) || (!findFromEnd && idx < index)) {
+			index = idx
+			numStr = num
 		}
 	}
 
-	if firstIndex != -1 && len(firstNumStr) > 1{
-		firstNumStr = numberMap[firstNumStr]
+	if index != -1 && len(numStr) > 1 {
+		numStr = numberMap[numStr]
 	}
 
-	return firstIndex, firstNumStr
+	return index, numStr
 }
 
-func checkLastInput(input string) (int, string) {
-	var lastIndex = -1
-	var lastNumStr string
-
-	for _, numStr := range []string{"one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7", "eight", "8", "nine", "9"} {
-		index := strings.LastIndex(input, numStr)
-		if index != -1 && (lastIndex == -1 || index > lastIndex) {
-			lastIndex = index
-			lastNumStr = numStr
-		}
-	}
-
-	if lastIndex != -1 && len(lastNumStr) > 1{
-		lastNumStr = numberMap[lastNumStr]
-	}
-
-	return lastIndex, lastNumStr
-}
-
-
+// Algo: To get the first number start from 0 and to get the last number
+// start from the end. 
+// Stop early if found a number.
+// Kind of like a two pointer algo.
 func getTotalCalib(calibrations []string) (int, error) {
 	var total int
 
@@ -89,6 +79,9 @@ func getTotalCalib(calibrations []string) (int, error) {
 		cal_start, cal_end := "", ""
 		start, end := 0, len(cal)-1
 		
+		// Since the max length of a number string is 5
+		// Taking substrings of 5 from both left and right 
+		// And checking if they have a number
 		for ; start <= len(cal)-1; start++ {
 			var subStrToCheck string
 			if len(cal[start:]) >= 5 {
@@ -97,7 +90,7 @@ func getTotalCalib(calibrations []string) (int, error) {
 				subStrToCheck = cal[start:]
 			}
 
-			index, result := checkFirstInput(subStrToCheck)
+			index, result := findNumber(subStrToCheck, false)
 			
 			if index != -1 {
 				cal_start = result
@@ -114,7 +107,7 @@ func getTotalCalib(calibrations []string) (int, error) {
 				subStrToCheck = cal[:end+1]
 			}
 
-			index, result := checkLastInput(subStrToCheck)
+			index, result := findNumber(subStrToCheck, true)
 			
 			if index != -1 {
 				cal_end = result

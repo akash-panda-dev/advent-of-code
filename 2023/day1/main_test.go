@@ -4,7 +4,32 @@ import (
 	"testing"
 )
 
-func TestPart1(t *testing.T) {
+func TestGetTotalCalib(t *testing.T) {
+	calibrations := []string{
+		"two1nine",
+		"eightwothree",
+		"abcone2threexyz",
+		"xtwone3four",
+		"4nineeightseven2",
+		"zoneight234",
+		"7pqrstsixteen",
+		"eighthree",
+		"sevenine",
+		"7abcdefgh121",
+	}
+
+	result, err := getTotalCalib(calibrations)
+	
+	if err != nil{
+		t.Error("Failed test")
+	}
+
+	if result != 514 {
+		t.Errorf("Expected %d, Got %d", 514, result)
+	}
+}
+
+func BenchmarkGetTotalCalib(b *testing.B) {
 	calibrations := []string{
 		"two1nine",
 		"eightwothree",
@@ -17,18 +42,12 @@ func TestPart1(t *testing.T) {
 		"sevenine",
 	}
 
-	result, err := part2(calibrations)
-	
-	if err != nil{
-		t.Error("Failed test")
-	}
-
-	if result != 443 {
-		t.Errorf("Expected %d, Got %d", 443, result)
+	for i := 0; i < b.N; i++ {
+		getTotalCalib(calibrations)
 	}
 }
 
-func TestCheckLastInput(t *testing.T) {
+func TestFindNumber(t *testing.T) {
 	calibrations := []string{
 		"two1nine",
 		"eightwothree",
@@ -52,7 +71,7 @@ func TestCheckLastInput(t *testing.T) {
 	}
 
 	for i, cal := range calibrations {
-		_, result := checkLastInput(cal)
+		_, result := findNumber(cal, true)
 
 		if result != expectedOutput[i] {
 			t.Errorf("Expected %v, Got %v", expectedOutput[i], result)
