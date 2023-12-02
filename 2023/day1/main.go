@@ -17,7 +17,6 @@ func main() {
 	}
 	
 	calibrations := strings.Split(string(file), "\n")
-
 	result, err := getTotalCalib(calibrations)
 
 	if err != nil {
@@ -41,7 +40,7 @@ var numberMap = map[string]string{
 }
 
 
-func findNumber(input string, findFromEnd bool) (int, string) {
+func findNumber(input string, findFromEnd bool) string {
 	var index = -1
 	var numStr string
 
@@ -65,55 +64,16 @@ func findNumber(input string, findFromEnd bool) (int, string) {
 		numStr = numberMap[numStr]
 	}
 
-	return index, numStr
+	return numStr
 }
 
-// Algo: To get the first number start from 0 and to get the last number
-// start from the end. 
-// Stop early if found a number.
-// Kind of like a two pointer algo.
 func getTotalCalib(calibrations []string) (int, error) {
 	var total int
 
 	for _, cal := range calibrations {
-		cal_start, cal_end := "", ""
-		start, end := 0, len(cal)-1
-		
-		// Since the max length of a number string is 5
-		// Taking substrings of 5 from both left and right 
-		// And checking if they have a number
-		for ; start <= len(cal)-1; start++ {
-			var subStrToCheck string
-			if len(cal[start:]) >= 5 {
-				subStrToCheck = cal[start: start + 5]
-			} else {
-				subStrToCheck = cal[start:]
-			}
+		cal_start := findNumber(cal, false)
+		cal_end := findNumber(cal, true)
 
-			index, result := findNumber(subStrToCheck, false)
-			
-			if index != -1 {
-				cal_start = result
-				start += index
-				break
-			}
-		}
-
-		for ; end >= start; end-- {
-			var subStrToCheck string
-			if len(cal[:end+1]) >= 5 {
-				subStrToCheck = cal[end-4:end+1]
-			} else {
-				subStrToCheck = cal[:end+1]
-			}
-
-			index, result := findNumber(subStrToCheck, true)
-			
-			if index != -1 {
-				cal_end = result
-				break
-			}
-		}
 		final_cal, err := strconv.Atoi(cal_start + cal_end)
 
 		if err != nil {

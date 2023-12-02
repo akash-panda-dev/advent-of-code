@@ -71,7 +71,7 @@ func TestFindNumber(t *testing.T) {
 	}
 
 	for i, cal := range calibrations {
-		_, result := findNumber(cal, true)
+		result := findNumber(cal, true)
 
 		if result != expectedOutput[i] {
 			t.Errorf("Expected %v, Got %v", expectedOutput[i], result)
