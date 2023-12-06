@@ -13,5 +13,5 @@ func TestProcessAlmanac(m *testing.T) {
 		m.Fatalf("Failed to read the file, %v", err)
 	}
 
-	processAlmanac(strings.Split(string(file), "\n"))
+	processAlmanac(strings.Split(string(file), "\n\n"))
 }
