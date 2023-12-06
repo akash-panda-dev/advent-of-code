@@ -5,14 +5,13 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
-
-	"slices"
 )
 
 func main() {
-	file, err := os.ReadFile("2023/day5/input_test.txt")
+	file, err := os.ReadFile("2023/day5/input.txt")
 
 	if err != nil {
 		log.Fatalf("Failed to read the file, %v", err)
@@ -21,18 +20,45 @@ func main() {
 	processAlmanac(strings.Split(string(file), "\n"))
 }
 
-func parseSeeds(seedStr string, seedToSoil map[int][]int) {
+type SeedsRanges struct {
+	start     int
+	seedRange int
+}
+
+type interval struct {
+	start int
+	end   int
+}
+
+func parseSeeds(seedStr string) []interval {
 	seedsNumsStr := strings.Split(seedStr, ":")[1]
 	seedsNumsAndRanges := strings.Fields(seedsNumsStr)
+	fmt.Println("Seed ranges", seedsNumsAndRanges)
+	var seedsRanges []SeedsRanges
+	var result []interval
 
 	for i := 0; i <= len(seedsNumsAndRanges)-1; i += 2 {
 		seedStart := strToInt(seedsNumsAndRanges[i])
 		seedRange := strToInt(seedsNumsAndRanges[i+1])
 
-		for seed := seedStart; seed < seedStart+seedRange; seed++ {
-			seedToSoil[seed] = []int{}
-		}
+		seedsRanges = append(seedsRanges, SeedsRanges{
+			start:     seedStart,
+			seedRange: seedRange,
+		})
 	}
+
+	sort.Slice(seedsRanges, func(i, j int) bool {
+		return seedsRanges[i].start < seedsRanges[j].start
+	})
+
+	for _, seed := range seedsRanges {
+		result = append(result, interval{
+			start: seed.start,
+			end:   seed.start + seed.seedRange - 1,
+		})
+	}
+
+	return result
 }
 
 func strToInt(str string) int {
@@ -45,42 +71,77 @@ func strToInt(str string) int {
 	return num
 }
 
-func populateResourceMap(resourceInput []string, sourceMap map[int][]int, destinationMap map[int][]int, startIndex int) int {
+func getUpdatedIntervals(resourceInput []string, sourceIntervals []interval, startIndex int) ([]interval, int) {
+	var result []interval
 	var endIndex int
-	var sourceToFoundMap = make(map[int]bool)
 
-	for i := startIndex; i <= len(resourceInput)-1; i++ {
-		resourcesRange := strings.Fields(resourceInput[i])
 
-		if len(resourcesRange) == 0 {
-			break
-		}
+	for _, inter := range sourceIntervals {
+		interModified := false
+		for i := startIndex; i <= len(resourceInput)-1; i++ {
+			resourcesRange := strings.Fields(resourceInput[i])
 
-		destinationStart := strToInt(resourcesRange[0])
-		sourceStart := strToInt(resourcesRange[1])
-		rangeLength := strToInt(resourcesRange[2])
-		var destinationEnd int
-
-		for source := range sourceMap {
-			if sourceStart <= source && source <= sourceStart+rangeLength {
-				destinationEnd = destinationStart + (source - sourceStart)
-				sourceMap[source] = append(sourceMap[source], destinationEnd)
-				destinationMap[destinationEnd] = []int{}
-				sourceToFoundMap[source] = true
+			if len(resourcesRange) == 0 {
+				break
 			}
+
+			destinationStart := strToInt(resourcesRange[0])
+			sourceStart := strToInt(resourcesRange[1])
+			rangeLength := strToInt(resourcesRange[2])
+			sourceEnd := sourceStart + rangeLength
+
+			if sourceStart <= inter.start && inter.end <= sourceEnd {
+				interModified = true
+				result = append(result, interval{
+					start: inter.start + (destinationStart - sourceStart),
+					end:   inter.end + (destinationStart - sourceStart),
+				})
+			} else if inter.start < sourceStart && sourceEnd < inter.end {
+				interModified = true
+				result = append(result,
+					interval{
+						start: inter.start,
+						end:   sourceStart},
+					interval{
+						start: sourceStart + (destinationStart - sourceStart),
+						end:   sourceEnd + (destinationStart - sourceStart),
+					},
+					interval{
+						start: sourceEnd,
+						end:   inter.end,
+					})
+			} else if inter.start < sourceStart && sourceStart < inter.end {
+				interModified = true
+				result = append(result,
+					interval{
+						start: inter.start,
+						end:   sourceStart},
+					interval{
+						start: sourceStart + (destinationStart - sourceStart),
+						end:   inter.end + (destinationStart - sourceStart),
+					},
+				)
+			} else if inter.start < sourceEnd && sourceEnd < inter.end {
+				interModified = true
+				result = append(result,
+					interval{
+						start: inter.start + (destinationStart - sourceStart),
+						end:   sourceEnd + (destinationStart - sourceStart),
+					},
+					interval{
+						start: sourceEnd,
+						end:   inter.end,
+					})
+			}
+			endIndex = i
 		}
 
-		endIndex = i
-	}
-
-	for source := range sourceMap {
-		if _, ok := sourceToFoundMap[source]; !ok {
-			sourceMap[source] = append(sourceMap[source], source)
-			destinationMap[source] = []int{}
+		if !interModified {
+			result = append(result, inter)
 		}
 	}
 
-	return endIndex + 2
+	return result, endIndex
 }
 
 type ResourceType string
@@ -104,94 +165,89 @@ var ResourceToResourceMap = map[ResourceType]ResourceType{
 	Temperature: Humidity,
 }
 
-func findMinLocation(resource int, resourceType ResourceType, resourceTypeMap map[ResourceType]map[int][]int) int {
-	if resourceType == Humidity {
-		return slices.Min(resourceTypeMap[Humidity][resource])
-	}
-
-	if _, ok := resourceTypeMap[resourceType][resource]; !ok {
-		return math.MaxInt32
-	}
-
-	var minLocations []int
-
-	for _, r := range resourceTypeMap[resourceType][resource] {
-		minLocations = append(minLocations, findMinLocation(r, ResourceToResourceMap[resourceType], resourceTypeMap))
-	}
-
-	return slices.Min(minLocations)
-}
-
 func processAlmanac(input []string) {
 	var (
-		seedToSoil = make(map[int][]int)
-		soilToFertilizer      = make(map[int][]int)
-		fertilizerToWater     = make(map[int][]int)
-		waterToLight          = make(map[int][]int)
-		lightToTemperature    = make(map[int][]int)
-		temperatureToHumidity = make(map[int][]int)
-		humidityToLocation    = make(map[int][]int)
+	// seedToSoil            = make(map[int][]int)
+	// soilToFertilizer      = make(map[int][]int)
+	// fertilizerToWater     = make(map[int][]int)
+	// waterToLight          = make(map[int][]int)
+	// lightToTemperature    = make(map[int][]int)
+	// temperatureToHumidity = make(map[int][]int)
+	// humidityToLocation    = make(map[int][]int)
+	// locationToDummyMap    = make(map[int][]int)
 	)
 
-	resourceTypeMap := map[ResourceType]map[int][]int {
-		Seed: seedToSoil,
-		Soil: soilToFertilizer,
-		Fertilizer: fertilizerToWater,
-		Water: waterToLight,
-		Light: lightToTemperature,
-		Temperature: temperatureToHumidity,
-		Humidity: humidityToLocation,
+	// resourceTypeMap := map[ResourceType]map[int][]int{
+	// 	Seed:        seedToSoil,
+	// 	Soil:        soilToFertilizer,
+	// 	Fertilizer:  fertilizerToWater,
+	// 	Water:       waterToLight,
+	// 	Light:       lightToTemperature,
+	// 	Temperature: temperatureToHumidity,
+	// 	Humidity:    humidityToLocation,
+	// }
+
+	mapIds := map[string]struct{}{
+		"seed-to-soil":            {},
+		"soil-to-fertilizer":      {},
+		"fertilizer-to-water":     {},
+		"water-to-light":          {},
+		"light-to-temperature":    {},
+		"temperature-to-humidity": {},
+		"humidity-to-location":    {},
 	}
 
 	fmt.Println("Parsing seeds")
-	parseSeeds(input[0], seedToSoil)
-	fmt.Printf("Number of seeds to plant: %d \n", len(seedToSoil))
+	interval := parseSeeds(input[0])
+
+	fmt.Println("Seeds parsed, ", interval)
+
+	// interval = getUpdatedIntervals(input, interval, 1)
 
 	for i := 1; i <= len(input)-1; {
 		inputSlice := strings.Split(input[i], " ")
 
-		switch inputSlice[0] {
-		case "seed-to-soil":
-			i = populateResourceMap(input, seedToSoil, soilToFertilizer, i+1)
-			continue
-		case "soil-to-fertilizer":
-			i = populateResourceMap(input, soilToFertilizer, fertilizerToWater, i+1)
-			continue
-		case "fertilizer-to-water":
-			i = populateResourceMap(input, fertilizerToWater, waterToLight, i+1)
-			continue
-		case "water-to-light":
-			i = populateResourceMap(input, waterToLight, lightToTemperature, i+1)
-			continue
-		case "light-to-temperature":
-			i = populateResourceMap(input, lightToTemperature, temperatureToHumidity, i+1)
-			continue
-		case "temperature-to-humidity":
-			i = populateResourceMap(input, temperatureToHumidity, humidityToLocation, i+1)
-			continue
-		case "humidity-to-location":
-			i = populateResourceMap(input, humidityToLocation, humidityToLocation, i+1)
-			continue
-		default:
-			i++
+		if _, ok := mapIds[inputSlice[0]]; ok {
+			interval, i = getUpdatedIntervals(input, interval, i+1)
+		}
+
+		i++
+	}
+
+	fmt.Println("Intervals updated, ", interval)
+
+	minLocation := math.MaxInt32
+
+	for _, inter := range interval {
+		if inter.start < minLocation {
+			minLocation = inter.start
 		}
 	}
 
-	for source := range humidityToLocation {
-		if locations := humidityToLocation[source]; len(locations) == 0 {
-			humidityToLocation[source] = append(humidityToLocation[source], source)
-		}
-	}
+	fmt.Println("Min location, ", minLocation)
 
-	var minLocs []int
+	// for source := range humidityToLocation {
+	// 	if locations := humidityToLocation[source]; len(locations) == 0 {
+	// 		humidityToLocation[source] = append(humidityToLocation[source], source)
+	// 	}
+	// }
 
-	for seed := range seedToSoil {
-		fmt.Println("Processing seed: ", seed)
-		minLocs = append(minLocs, findMinLocation(seed, Seed, resourceTypeMap))
-	}
-	log.Printf("Min location: %v", slices.Min(minLocs))
+	// var minLocs []int
 
-	// Print all the maps
+	// for seed := range seedToSoil {
+	// 	minLocs = append(minLocs, findMinLocation(seed, Seed, resourceTypeMap))
+	// }
+	// log.Printf("Min location: %v", slices.Min(minLocs))
+
+	// fmt.Printf("Number of seeds to plant: %d \n", len(seedToSoil))
+	// fmt.Printf("Number of soils to plant: %d \n", len(soilToFertilizer))
+	// fmt.Printf("Number of fertilizers to plant: %d \n", len(fertilizerToWater))
+	// fmt.Printf("Number of waters to plant: %d \n", len(waterToLight))
+	// fmt.Printf("Number of lights to plant: %d \n", len(lightToTemperature))
+	// fmt.Printf("Number of temperatures to plant: %d \n", len(temperatureToHumidity))
+	// fmt.Printf("Number of humidities to plant: %d \n", len(humidityToLocation))
+
+	// // Print all the maps
 	// for k, v := range seedToSoil {
 	// 	log.Printf("Seed %d -> Soil %v", k, v)
 	// }
@@ -236,9 +292,12 @@ func processAlmanac(input []string) {
 	// 	log.Printf("Humidity %d -> Location %v", k, v)
 	// }
 
+	// for k, v := range locationToDummyMap {
+	// 	log.Printf("Location %d -> Dummy %v", k, v)
+	//}
+
 	// DFS on this tree
 	// [seed1, seed2....]
 	// [soil1, soil2....]
-
 
 }

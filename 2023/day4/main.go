@@ -28,7 +28,7 @@ func parseNumbers(numStr string) map[int]struct{} {
 
 	for _, num := range numStrs {
 		numInt, err := strconv.Atoi(strings.TrimSpace(num))
-		
+
 		if err != nil {
 			log.Fatalf("Failed to convert the string to int: %v", err)
 		}
@@ -56,7 +56,7 @@ func getPoints(selfNumsSet map[int]struct{}, winnerNums map[int]struct{}) (int, 
 			matchedNumCount++
 		}
 	}
-	
+
 	return int(math.Pow(2, float64(matchedNumCount)-1)), matchedNumCount
 }
 
@@ -73,17 +73,17 @@ func processCards(cards []string) (int, int) {
 		cardSplit := strings.Split(cards[i-1], ":")
 
 		lotteryNums := cardSplit[1]
-		winSelfNumsStr := strings.Split(lotteryNums, "|") 
+		winSelfNumsStr := strings.Split(lotteryNums, "|")
 		winnerNums := parseNumbers(winSelfNumsStr[0])
 		selfNums := parseNumbers(winSelfNumsStr[1])
 
 		points, matchedCount := getPoints(selfNums, winnerNums)
 
-		for k := 0; k <= cardCounts[i] - 1; k++ {
+		for k := 0; k <= cardCounts[i]-1; k++ {
 			totalPoints += points
-	
+
 			for j := 1; j <= matchedCount; j++ {
-				cardCounts[i + j] += 1
+				cardCounts[i+j] += 1
 			}
 			totalCardsProcessed += 1
 		}

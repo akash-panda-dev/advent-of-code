@@ -18,7 +18,6 @@ func TestProcessSchemas(t *testing.T) {
 		},
 	}
 
-
 	schematics.processSchemas()
 
 	if schematics.schemaSum != 4361 {

@@ -4,9 +4,9 @@ import "testing"
 
 func TestProcessCards(t *testing.T) {
 	testcases := []struct {
-		name   string
-		cards  []string
-		points int
+		name                string
+		cards               []string
+		points              int
 		totalCardsProcessed int
 	}{
 		{
@@ -19,7 +19,7 @@ func TestProcessCards(t *testing.T) {
 				"Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36",
 				"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11",
 			},
-			points: 13,
+			points:              13,
 			totalCardsProcessed: 30,
 		},
 		// {
