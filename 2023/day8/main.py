@@ -4,38 +4,48 @@ from collections import deque
 
 
 ways = {
-    0: "LEFT",
-    1: "RIGHT"
+    0: "L",
+    1: "R"
 }
 
-def findZZZ(start, directions, graph):
-    q = deque([start])
+# start node is start list
+def findZZZ(start_list, directions, graph):
+    q = deque(start_list)
+    start_len = len(start_list)
     steps = 0
     way_count = 0
     print("Number of directions: ", len(directions))
     
     while q:
-        node = q.popleft()
-        #print("node: ", node)
 
-        if node == 'ZZZ':
+        reachedDestination = True
+        foundSomeZs = False
+        for destination in q:
+            if destination[-1] != 'Z':
+                reachedDestination = False
+            elif destination[-1] == 'Z':
+                foundSomeZs = True
+        
+        if reachedDestination:
             return steps
         
-        neighbours = graph[node]
+        # if foundSomeZs:
+        #     print(q)
 
-        # way = ways[directions[way_count%len(directions)]]
-        # print("wayCount: ", way_count%len(directions))
-        next_node = neighbours[directions[way_count%len(directions)]]
-        if next_node == 'ZZZ':
-            return steps
-        # print(f"{node} to {next_node}")
-        #print(f"next_node: {next_node} from {node} going {way}")
-        q.append(next_node)
+        for _ in range(len(q)):
+            node = q.popleft()
+            
+            neighbours = graph[node]
+            next_node = neighbours[directions[way_count%len(directions)]]
+            q.append(next_node)
+        
         steps += 1
         way_count += 1
 
-        if steps % 100000 == 0:
-            print(steps)
+        if steps % 1000000 == 0:
+            print("Steps: ", steps)
+
+
     
     return -1
 
@@ -46,16 +56,17 @@ if __name__ == '__main__':
 
     directions = [1 if way == 'R' else 0 for way in lines[0]]
     graph = defaultdict(list)
-    start_node = None
+    start_list = []
     key_nodes = []
 
     for i in range(2, len(lines)):
         nodes = re.findall(r'\b\w+\b', lines[i])
         key_nodes.append(nodes[0])
         graph[nodes[0]].extend(nodes[1:])
-        if i == 2:
-            start_node = nodes[0]
+        if nodes[0][-1] == 'A':
+            start_list.append(nodes[0])
 
     print("Length of key nodes: ", len(key_nodes))
     print("Last key node: ", key_nodes[-1])
-    print(findZZZ(start_node, directions, graph))
+    print("Start list: ", start_list)
+    print(findZZZ(start_list, directions, graph))
