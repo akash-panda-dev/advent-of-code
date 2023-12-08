@@ -33,8 +33,6 @@ y = bx - x^2
 
 y > 9
 
-This makes an inverse parabola
-
 y = -x^2 + bx
 a = -1
 b = time
@@ -113,8 +111,6 @@ func getHoldsToBeatRecord(timeSheetStr []string, isKerningPresent bool) int {
 
 	var result int = 1
 
-	var validHoldCounts []int
-
 	for _, ts := range timeSheets {
 		a := float64(1)
 		b := -1 * float64(ts.time)
@@ -125,11 +121,7 @@ func getHoldsToBeatRecord(timeSheetStr []string, isKerningPresent bool) int {
 		holdStart = math.Floor(holdStart + 1)
 		holdEnd = math.Ceil(holdEnd - 1)
 
-		validHoldCounts = append(validHoldCounts, int(holdEnd) - int(holdStart) + 1)
-	}
-
-	for _, count := range validHoldCounts {
-		result *= count
+		result *= int(holdEnd) - int(holdStart) + 1
 	}
 
 	return result

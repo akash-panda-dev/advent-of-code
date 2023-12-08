@@ -8,7 +8,7 @@ func TestProcessTimesheets(t *testing.T) {
 		"Distance:  9  40  200",
 	}
 
-	count := processtimesheet(input)
+	count := getHoldsToBeatRecord(input, true)
 
 	if count != 288 {
 		t.Errorf("Expected %d, Got %d", 288, count)
