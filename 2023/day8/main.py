@@ -1,4 +1,5 @@
 from collections import defaultdict
+import math
 import re
 from collections import deque
 
@@ -9,44 +10,24 @@ ways = {
 }
 
 # start node is start list
-def findZZZ(start_list, directions, graph):
-    q = deque(start_list)
-    start_len = len(start_list)
+def findZZZ(start, directions, graph):
+    q = deque([start])
     steps = 0
     way_count = 0
-    print("Number of directions: ", len(directions))
     
     while q:
-
-        reachedDestination = True
-        foundSomeZs = False
-        for destination in q:
-            if destination[-1] != 'Z':
-                reachedDestination = False
-            elif destination[-1] == 'Z':
-                foundSomeZs = True
-        
-        if reachedDestination:
+        if q[0][-1] == 'Z':
             return steps
         
-        # if foundSomeZs:
-        #     print(q)
-
-        for _ in range(len(q)):
-            node = q.popleft()
+        node = q.popleft()
             
-            neighbours = graph[node]
-            next_node = neighbours[directions[way_count%len(directions)]]
-            q.append(next_node)
+        neighbours = graph[node]
+        next_node = neighbours[directions[way_count%len(directions)]]
+        q.append(next_node)
         
         steps += 1
         way_count += 1
 
-        if steps % 1000000 == 0:
-            print("Steps: ", steps)
-
-
-    
     return -1
 
 
@@ -66,7 +47,6 @@ if __name__ == '__main__':
         if nodes[0][-1] == 'A':
             start_list.append(nodes[0])
 
-    print("Length of key nodes: ", len(key_nodes))
-    print("Last key node: ", key_nodes[-1])
-    print("Start list: ", start_list)
-    print(findZZZ(start_list, directions, graph))
+    distances = [findZZZ(start, directions, graph) for start in start_list]
+    lcm = math.lcm(*distances)
+    print(lcm)
