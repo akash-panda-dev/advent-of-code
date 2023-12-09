@@ -10,36 +10,16 @@ ways = {
 }
 
 # start node is start list
-<<<<<<< Updated upstream
 def findZZZ(start, directions, graph):
     q = deque([start])
-=======
-def findZZZ(start_list, directions, graph):
-    q = deque(start_list)
->>>>>>> Stashed changes
     steps = 0
     way_count = 0
     
     while q:
-<<<<<<< Updated upstream
         if q[0][-1] == 'Z':
             return steps
         
         node = q.popleft()
-=======
-
-        reachedDestination = True
-        for destination in q:
-            if destination[-1] != 'Z':
-                reachedDestination = False
-        
-        if reachedDestination:
-            return steps
-        
-
-        for _ in range(len(q)):
-            node = q.popleft()
->>>>>>> Stashed changes
             
         neighbours = graph[node]
         next_node = neighbours[directions[way_count%len(directions)]]
@@ -48,12 +28,6 @@ def findZZZ(start_list, directions, graph):
         steps += 1
         way_count += 1
 
-<<<<<<< Updated upstream
-=======
-        if steps % 1000000 == 0:
-            print("Steps: ", steps)
-
->>>>>>> Stashed changes
     return -1
 
 
