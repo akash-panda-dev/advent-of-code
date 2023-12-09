@@ -33,7 +33,3 @@ if __name__ == '__main__':
         part2Result += findNext_Part2(values)
 
     print("Part 2: ", part2Result)
-
-
-    
-
