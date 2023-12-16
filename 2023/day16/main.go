@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -81,23 +82,23 @@ func energizeMirrors(grid []string, dir direction, sRow, sCol int, totalEnergize
 	for _, nextDir := range nextDirs {
 		energizeMirrors(grid, nextDir, sRow+nextDir.r, sCol+nextDir.c, totalEnergizedTiles)
 	}
-
 }
 
 func processMirrorGrid(grid []string) int {
 	// Part 1
-
+	// totalEnergizedTiles are the tiles that are energized mapped to the directions from which they were energized
 	totalEnergizedTiles := map[tile][]direction{}
 	energizeMirrors(grid, E, 0, 0, totalEnergizedTiles)
 
 	// Part 2
-
 	// Prepare a list of possible starting tiles and its directions
-	startingTiles := map[tile][]direction{}
+	maxEnergizedTiles := -1
 
+	startingTiles := map[tile][]direction{}
 	startRows := map[int]direction{0: S, len(grid) - 1: N}
 	startCols := map[int]direction{0: E, len(grid[0]) - 1: W}
 
+	// Collect all the possible starting tiles in the left most and right most columns
 	for row := 0; row <= len(grid)-1; row++ {
 		for col, dir := range startCols {
 			nTile := tile{r: row, c: col}
@@ -105,6 +106,7 @@ func processMirrorGrid(grid []string) int {
 		}
 	}
 
+	// Collect all the possible starting tiles in the top most and bottom most rows
 	for col := 0; col <= len(grid[0])-1; col++ {
 		for row, dir := range startRows {
 			nTile := tile{r: row, c: col}
@@ -112,8 +114,7 @@ func processMirrorGrid(grid []string) int {
 		}
 	}
 
-	maxEnergizedTiles := -1
-
+	// For each starting tile, energize the mirrors and get the max energized tiles
 	for curTile, dirs := range startingTiles {
 		for _, dir := range dirs {
 			totalEnergizedTiles := map[tile][]direction{}
@@ -134,5 +135,7 @@ func main() {
 		log.Fatalf("Failed to read the file, %v", err)
 	}
 
-	processMirrorGrid(strings.Split(string(file), "\n"))
+	result := processMirrorGrid(strings.Split(string(file), "\n"))
+
+	fmt.Println("Energized tiles:", result)
 }
