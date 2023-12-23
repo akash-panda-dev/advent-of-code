@@ -72,7 +72,7 @@ class UltraPoint(Point):
     @property
     def min_run(self):
         return 4
-
+    
 
 def find_shortest_path(map: List[List[str]], start: Point) -> int:
     def bfs(start: Point) -> int:
@@ -85,6 +85,8 @@ def find_shortest_path(map: List[List[str]], start: Point) -> int:
         # If we follow the normal djikstra approach, it does not guarantee the path to the current point is the shortest
         # Becuase we have a condition that we can't go more than 3 steps in the same direction 
         # So we need to keep track of heat loss to a point from all possible states not just path. States can be number of steps, direction and ofcourse the point itself
+        # The graph then becomes a directed graph with multiple edges between two points.
+        # Or another way to think about it is that the nodes in the graph are not just points but points with a state like (0, 0, Right, 2) which means we are at (0, 0) and we have taken 2 steps in the right direction
         total_heat_loss_map = defaultdict(lambda: float('inf'))
 
         while queue:
@@ -100,6 +102,8 @@ def find_shortest_path(map: List[List[str]], start: Point) -> int:
                 if new_heat_loss < total_heat_loss_map[nPoint]:
                     total_heat_loss_map[nPoint] = new_heat_loss
                     heappush(queue, (new_heat_loss, nPoint))
+            
+            return -1
     
     result = bfs(start)
     return result
