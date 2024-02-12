@@ -47,6 +47,7 @@ func strToInt(str string) int {
 
 	if err != nil {
 		log.Fatalf("Failed to convert the string to int: %v", err)
+		
 	}
 
 	return num

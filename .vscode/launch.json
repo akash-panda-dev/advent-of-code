@@ -1,22 +1,57 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Debug Subfolder Program",
-            "type": "go",
-            "request": "launch",
-            "program": "${workspaceFolder}/${input:subfolder}/main.go",
-            "cwd": "${workspaceFolder}/${input:subfolder}",
-            "env": {},
-            "args": []
-        }
-    ],
-    "inputs": [
-        {
-            "id": "subfolder",
-            "type": "promptString",
-            "description": "Enter the subfolder path relative to the workspace root where main.go is located",
-            "default": "2023/day1"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Day3",
+      "request": "launch",
+      "mainClass": "year2016.day3.Day3",
+      "projectName": "advent-of-code_2548b9c9"
+    },
+    {
+      "type": "java",
+      "name": "Day2",
+      "request": "launch",
+      "mainClass": "year2016.day2.Day2",
+      "projectName": "advent-of-code_2548b9c9"
+    },
+    {
+      "type": "java",
+      "name": "Day1",
+      "request": "launch",
+      "mainClass": "Day1",
+      "projectName": "your-project-name"
+    },
+    {
+      "type": "java",
+      "name": "Day1",
+      "request": "launch",
+      "mainClass": "year2016.day1.Day1",
+      "projectName": "advent-of-code_2548b9c9"
+    },
+    {
+      "type": "java",
+      "name": "Day1",
+      "request": "launch",
+      "mainClass": "Day1",
+      "projectName": "advent-of-code_2548b9c9"
+    },
+    {
+      "name": "Debug Subfolder Program",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/${input:subfolder}/main.go",
+      "cwd": "${workspaceFolder}/${input:subfolder}",
+      "env": {},
+      "args": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "subfolder",
+      "type": "promptString",
+      "description": "Enter the subfolder path relative to the workspace root where main.go is located",
+      "default": "2023/day1"
+    }
+  ]
 }
