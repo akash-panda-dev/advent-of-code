@@ -16,12 +16,12 @@ fn main() -> Result<()> {
     match part.as_str() {
         "1" => {
             let file = include_str!("../input.txt");
-            let result = part1::process(file).context("process part 1")?;
+            let result = part1::process_right_left(file).context("process part 1")?;
             println!("{}", result);
         }
         "2" => {
             let file = include_str!("../input.txt");
-            let result = part2::process(file).context("process part 2")?;
+            let result = part2::process_right_left(file).context("process part 2")?;
             println!("{}", result);
         }
         _ => panic!("Invalid part number: {}", part),

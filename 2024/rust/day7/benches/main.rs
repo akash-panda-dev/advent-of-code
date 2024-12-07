@@ -23,3 +23,8 @@ fn bench_part1_optimized_blackbox() {
 fn bench_part2() {
     part2::process(include_str!("../input.txt")).unwrap();
 }
+
+#[divan::bench]
+fn bench_part2_optimized() {
+    part2::process_right_left(include_str!("../input.txt")).unwrap();
+}
