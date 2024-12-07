@@ -1,0 +1,61 @@
+set dotenv-load
+
+# Watch for changes and automatically run checks, tests, and lints
+# Usage: just work 1 1
+work day part:
+    cargo watch -w day{{day}} \
+        -x "check -p day{{day}}" \
+        -x "test -p day{{day}} -- part{{part}}" \
+        -x "clippy -p day{{day}}" \
+        -s "just run {{day}} {{part}}"
+
+# Run a specific day's solution
+# Usage: just run 1 1
+run day part:
+    cargo run --release -p day{{day}} -- {{part}}
+
+# Run clippy lints for a specific day
+# Usage: just lint 1
+lint day:
+    cargo clippy -p day{{day}}
+
+# Run tests for a specific day and part
+# Usage: just test 1 1
+test day part:
+    cargo test -p day{{day}} part{{part}}
+
+# Run benchmarks for a specific day and part
+# Usage: just bench 1 1
+bench day part:
+    BENCH=1 cargo bench -p day{{day}} bench_part{{part}}
+
+# Run all benchmarks and save results
+# Usage: just bench-all
+bench-all:
+    @rm -f benchmarks.txt
+    @for dir in day*; do \
+        echo "\nBenchmarking $dir" >> benchmarks.txt; \
+        BENCH=1 cargo bench -p "$dir" >> benchmarks.txt 2>&1; \
+    done
+    @echo "Benchmarks saved to benchmarks.txt"
+
+# Create a new day's directory from template and fetch input
+# Usage: just create 1
+create number:
+    cargo generate --path ./daily-template --name day{{number}}
+    just get-input {{number}}
+
+# Fetch input for a specific day
+# Usage: just get-input 1
+get-input day:
+    ./scripts/get-aoc-input.rs --day day{{day}} --current-working-directory {{justfile_directory()}}
+
+# Clean all build artifacts and temporary files
+clean:
+    cargo clean
+    rm -f benchmarks.txt
+    rm -f day*.bench.txt
+
+# List all available commands
+help:
+    @just --list
