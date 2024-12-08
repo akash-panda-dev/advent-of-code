@@ -1,3 +1,6 @@
+use itertools::Itertools;
+use rayon::prelude::*;
+
 fn parse(input: &str) -> impl Iterator<Item = Vec<u64>> + '_ {
     input.lines().map(|line| {
         line.split(|c: char| !c.is_ascii_alphanumeric())
@@ -20,6 +23,27 @@ fn is_feasible(target: u64, curr: u64, nums: &[u64], ops: &[Op]) -> bool {
         }),
         _ => false,
     }
+}
+
+fn is_feasible_cartesian(target: u64, nums: &[u64], ops: &[Op]) -> bool {
+    (0..nums.len() - 1)
+        .map(|_| ops)
+        .multi_cartesian_product()
+        .any(|seq| {
+            let mut s = seq.iter();
+
+            let result = nums
+                .iter()
+                .copied()
+                .reduce(|acc, next| match s.next().unwrap() {
+                    Op::Mul => acc * next,
+                    Op::Add => acc + next,
+                    _ => panic!("not supported"),
+                })
+                .unwrap();
+
+            result == target
+        })
 }
 
 /// Efficiently checks if target can be reached using the given numbers and operations,
@@ -68,8 +92,11 @@ pub mod part1 {
         let input_iter = parse(input);
         let ops = &[Op::Add, Op::Mul];
 
+        // let total_calib = input_iter
+        //     .filter_map(|line| is_feasible(line[0], line[1], &line[2..], ops).then_some(line[0]))
+        //     .sum();
         let total_calib = input_iter
-            .filter_map(|line| is_feasible(line[0], line[1], &line[2..], ops).then_some(line[0]))
+            .filter_map(|line| is_feasible_cartesian(line[0], &line[1..], ops).then_some(line[0]))
             .sum();
         Ok(total_calib)
     }

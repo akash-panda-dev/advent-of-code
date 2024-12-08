@@ -1,9 +1,9 @@
-use anyhow::{Context, Result};
-use day7::part1;
-use day7::part2;
+use day8::part1;
+use day8::part2;
+use miette::Context;
 
 #[tracing::instrument]
-fn main() -> Result<()> {
+fn main() -> miette::Result<()> {
     // Only initialize if we're not benchmarking
     if std::env::var("BENCH").is_err() {
         tracing_subscriber::fmt::init();
@@ -21,7 +21,7 @@ fn main() -> Result<()> {
         }
         "2" => {
             let file = include_str!("../input.txt");
-            let result = part2::process_right_left(file).context("process part 2")?;
+            let result = part2::process(file).context("process part 2")?;
             println!("{}", result);
         }
         _ => panic!("Invalid part number: {}", part),
