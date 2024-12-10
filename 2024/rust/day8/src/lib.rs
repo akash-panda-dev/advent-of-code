@@ -20,17 +20,12 @@ impl Grid {
         let lines: Vec<&str> = input.lines().collect();
         let bounds = (lines.len() as i64 - 1, lines[0].len() as i64 - 1);
         let mut antennas = HashMap::new();
-        let mut occupied_loc = HashSet::new();
 
         for (row, line) in lines.iter().enumerate() {
             for (col, ch) in line.chars().enumerate() {
                 let loc = Loc(row as i64, col as i64);
-                match ch {
-                    '.' => {}
-                    a => {
-                        antennas.entry(a).or_insert_with(Vec::new).push(loc);
-                        occupied_loc.insert(loc);
-                    }
+                if ch != '.' {
+                    antennas.entry(ch).or_insert_with(Vec::new).push(loc);
                 }
             }
         }
