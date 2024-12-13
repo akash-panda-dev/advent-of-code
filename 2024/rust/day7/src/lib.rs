@@ -56,7 +56,7 @@ fn is_feasible_cartesian(target: u64, nums: &[u64], ops: &[Op]) -> bool {
 fn is_feasible_rev(target: u64, nums: &[u64], ops: &[Op]) -> bool {
     match nums {
         [curr] if target == *curr => true,
-        [rest @ .., tail] => ops.iter().any(|op| match op {
+        [rest @ .., tail] => ops.iter().any(|op match op {
             Op::Mul => target % tail == 0 && is_feasible_rev(target / tail, rest, ops),
             Op::Add => target >= *tail && is_feasible_rev(target - tail, rest, ops),
             Op::Mask => {
