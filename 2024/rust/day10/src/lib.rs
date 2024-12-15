@@ -3,16 +3,6 @@ use std::{collections::HashSet, fmt};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 struct Loc(i32, i32);
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-impl Direction {}
-
 #[derive(Clone)]
 struct Grid {
     trails: Vec<Vec<u32>>,
