@@ -239,8 +239,9 @@ fn djikstra(
     start: Reindeer,
     end: Coord,
     maze: &Maze,
-) -> Option<(HashMap<Coord, HashSet<Coord>>, usize)> {
-    let mut predecessors: HashMap<Coord, HashSet<Coord>> = HashMap::new();
+) -> Option<(HashMap<Reindeer, HashSet<Reindeer>>, usize)> {
+    // Changed type
+    let mut predecessors: HashMap<Reindeer, HashSet<Reindeer>> = HashMap::new(); // Changed type
     let mut cost_so_far: HashMap<Reindeer, usize> = HashMap::new();
     let mut pq = BinaryHeap::new();
     let start_state = State {
@@ -266,37 +267,27 @@ fn djikstra(
                 Some(&current_cost) => {
                     if new_cost < current_cost {
                         cost_so_far.insert(next_reindeer, new_cost);
-                        if reindeer.loc != next_reindeer.loc {
-                            predecessors
-                                .entry(next_reindeer.loc)
-                                .or_insert_with(HashSet::new)
-                                .clear();
-                            predecessors
-                                .entry(next_reindeer.loc)
-                                .or_insert_with(HashSet::new)
-                                .insert(reindeer.loc);
-                        }
-                        pq.push(State {
-                            reindeer: next_reindeer,
-                            cost: new_cost,
-                        });
+                        predecessors
+                            .entry(next_reindeer)
+                            .or_insert_with(HashSet::new)
+                            .clear();
+                        predecessors
+                            .entry(next_reindeer)
+                            .or_insert_with(HashSet::new)
+                            .insert(reindeer);
                     } else if new_cost == current_cost {
-                        if reindeer.loc != next_reindeer.loc {
-                            predecessors
-                                .entry(next_reindeer.loc)
-                                .or_insert_with(HashSet::new)
-                                .insert(reindeer.loc);
-                        }
+                        predecessors
+                            .entry(next_reindeer)
+                            .or_insert_with(HashSet::new)
+                            .insert(reindeer);
                     }
                 }
                 None => {
                     cost_so_far.insert(next_reindeer, new_cost);
-                    if reindeer.loc != next_reindeer.loc {
-                        predecessors
-                            .entry(next_reindeer.loc)
-                            .or_insert_with(HashSet::new)
-                            .insert(reindeer.loc);
-                    }
+                    predecessors
+                        .entry(next_reindeer)
+                        .or_insert_with(HashSet::new)
+                        .insert(reindeer);
                     pq.push(State {
                         reindeer: next_reindeer,
                         cost: new_cost,
@@ -309,24 +300,37 @@ fn djikstra(
     None
 }
 
-fn bfs_track(predecessors: &HashMap<Coord, HashSet<Coord>>, start: Coord, end: Coord) -> usize {
+// You'll need to modify bfs_track as well to work with Reindeer states
+fn bfs_track(predecessors: &HashMap<Reindeer, HashSet<Reindeer>>, end: Coord) -> usize {
     let mut queue = VecDeque::new();
-    let mut cells = HashSet::new();
+    let mut visited = HashSet::new();
 
-    queue.push_back(end);
-    cells.insert(end);
+    // Find all end states (any direction at the end coordinate)
+    let end_states: Vec<_> = predecessors
+        .keys()
+        .filter(|r| r.loc == end)
+        .copied()
+        .collect();
+
+    for end_state in end_states {
+        queue.push_back(end_state);
+        visited.insert(end_state);
+    }
 
     while let Some(curr) = queue.pop_front() {
         if let Some(preds) = predecessors.get(&curr) {
             for &pred in preds {
-                if cells.insert(pred) {
+                if visited.insert(pred) {
                     queue.push_back(pred);
                 }
             }
         }
     }
 
-    cells.len()
+    // Count unique locations (if you only want physical positions)
+    visited.iter().map(|r| r.loc).collect::<HashSet<_>>().len()
+    // Or count all states including directions if that's what you need:
+    // visited.len()
 }
 
 pub mod part2 {
@@ -367,7 +371,7 @@ pub mod part2 {
         //     .dedup()
         //     .count();
 
-        let path_cells = bfs_track(&predecessors.unwrap().0, maze.start, maze.end);
+        let path_cells = bfs_track(&predecessors.unwrap().0, maze.end);
 
         Ok(path_cells)
     }
