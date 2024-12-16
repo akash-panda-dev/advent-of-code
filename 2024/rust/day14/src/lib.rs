@@ -248,12 +248,9 @@ pub mod part2 {
 
     fn calculate_variance(robots: &[Robot]) -> i32 {
         let n: i32 = robots.len() as i32;
-
-        // Calculate means
         let mean_x: i32 = robots.iter().map(|p| p.pos.x).sum::<i32>() / n;
         let mean_y: i32 = robots.iter().map(|p| p.pos.y).sum::<i32>() / n;
 
-        // Calculate variances
         let var_x = robots
             .iter()
             .map(|p| (p.pos.x - mean_x).pow(2))
