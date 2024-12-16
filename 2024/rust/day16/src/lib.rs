@@ -1,4 +1,7 @@
-use std::collections::HashSet;
+use std::{
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    usize::MAX,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 struct Coord {
@@ -214,10 +217,123 @@ pub mod part1 {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+struct State {
+    reindeer: Reindeer,
+    cost: usize,
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn djikstra(
+    start: Reindeer,
+    end: Coord,
+    maze: &Maze,
+) -> Option<(HashMap<Coord, HashSet<Coord>>, usize)> {
+    let mut predecessors: HashMap<Coord, HashSet<Coord>> = HashMap::new();
+    let mut cost_so_far: HashMap<Reindeer, usize> = HashMap::new();
+    let mut pq = BinaryHeap::new();
+    let start_state = State {
+        reindeer: start,
+        cost: 0,
+    };
+    pq.push(start_state);
+    cost_so_far.insert(start, 0);
+
+    while let Some(State { cost, reindeer }) = pq.pop() {
+        if reindeer.loc == end {
+            return Some((predecessors, cost));
+        }
+
+        if cost > *cost_so_far.get(&reindeer).unwrap() {
+            continue;
+        }
+
+        for (next_reindeer, move_cost) in reindeer.successors(maze) {
+            let new_cost = cost + move_cost;
+
+            match cost_so_far.get(&next_reindeer) {
+                Some(&current_cost) => {
+                    if new_cost < current_cost {
+                        cost_so_far.insert(next_reindeer, new_cost);
+                        if reindeer.loc != next_reindeer.loc {
+                            predecessors
+                                .entry(next_reindeer.loc)
+                                .or_insert_with(HashSet::new)
+                                .clear();
+                            predecessors
+                                .entry(next_reindeer.loc)
+                                .or_insert_with(HashSet::new)
+                                .insert(reindeer.loc);
+                        }
+                        pq.push(State {
+                            reindeer: next_reindeer,
+                            cost: new_cost,
+                        });
+                    } else if new_cost == current_cost {
+                        if reindeer.loc != next_reindeer.loc {
+                            predecessors
+                                .entry(next_reindeer.loc)
+                                .or_insert_with(HashSet::new)
+                                .insert(reindeer.loc);
+                        }
+                    }
+                }
+                None => {
+                    cost_so_far.insert(next_reindeer, new_cost);
+                    if reindeer.loc != next_reindeer.loc {
+                        predecessors
+                            .entry(next_reindeer.loc)
+                            .or_insert_with(HashSet::new)
+                            .insert(reindeer.loc);
+                    }
+                    pq.push(State {
+                        reindeer: next_reindeer,
+                        cost: new_cost,
+                    });
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn bfs_track(predecessors: &HashMap<Coord, HashSet<Coord>>, start: Coord, end: Coord) -> usize {
+    let mut queue = VecDeque::new();
+    let mut cells = HashSet::new();
+
+    queue.push_back(end);
+    cells.insert(end);
+
+    while let Some(curr) = queue.pop_front() {
+        if let Some(preds) = predecessors.get(&curr) {
+            for &pred in preds {
+                if cells.insert(pred) {
+                    queue.push_back(pred);
+                }
+            }
+        }
+    }
+
+    cells.len()
+}
+
 pub mod part2 {
     use std::collections::HashMap;
 
     use super::*;
+    use itertools::Itertools;
     use miette::Result;
     use pathfinding::prelude::*;
 
@@ -229,25 +345,31 @@ pub mod part2 {
             dir: Direction::Right,
         };
 
-        let mut predecessors: HashMap<Reindeer, Vec<Reindeer>> = HashMap::new();
+        let maze = Maze::parse(&input);
+        let reindeer = Reindeer {
+            loc: maze.start,
+            dir: Direction::Right,
+        };
 
-        let result = dijkstra(
-            &reindeer,
-            |reindeer| {
-                let successors = reindeer.successors(&maze);
+        // let result = dijkstra(
+        //     &reindeer,
+        //     |reindeer| reindeer.successors(&maze),
+        //     |reindeer| reindeer.loc == maze.end,
+        // );
+        let predecessors = djikstra(reindeer, maze.end, &maze);
+        dbg!(&predecessors);
 
-                for (next, _) in &successors {
-                    predecessors.entry(*next).or_default().push(*reindeer);
-                }
+        // let path = predecessors
+        //     .unwrap()
+        //     .0
+        //     .values()
+        //     .flat_map(|c| c.iter().copied().collect::<Vec<Coord>>())
+        //     .dedup()
+        //     .count();
 
-                successors
-            },
-            |reindeer| reindeer.loc == maze.end,
-        );
+        let path_cells = bfs_track(&predecessors.unwrap().0, maze.start, maze.end);
 
-        dbg!(predecessors.len());
-
-        Ok(result.unwrap().1)
+        Ok(path_cells)
     }
 
     #[cfg(test)]
