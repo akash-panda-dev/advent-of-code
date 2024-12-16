@@ -1,0 +1,20 @@
+[package]
+name = "day8"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools.workspace = true
+nom.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+miette.workspace = true
+divan = { workspace = true }
+
+[dev-dependencies]
+rstest.workspace = true
+test-log.workspace = true
+
+[[bench]]
+name = "main"
+harness = false
