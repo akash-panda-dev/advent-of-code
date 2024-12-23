@@ -1,7 +1,4 @@
-use std::{
-    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
-    usize::MAX,
-};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 struct Coord {
@@ -68,7 +65,7 @@ struct Reindeer {
 
 impl Reindeer {
     fn successors(&self, maze: &Maze) -> Vec<(Self, usize)> {
-        let mut next_states: Vec<(Self, usize)> = vec![];
+        let mut next_states: Vec<(Self, usize)> = Vec::with_capacity(3);
         let dir = self.dir;
 
         if !maze.walls.contains(&self.loc.next_pos(dir)) {
@@ -139,29 +136,27 @@ impl Maze {
 pub mod part1 {
     use super::*;
     use miette::Result;
-    use pathfinding::{directed::dijkstra, prelude::dijkstra};
+    use pathfinding::prelude::dijkstra;
 
     #[tracing::instrument]
     pub fn process(input: &str) -> Result<usize> {
         // It's a straighforward Djisktra algo I think
         // The nodes the variations of cell's location and it's direction.
         // The cost of moving to another cell is 1 and turning is 1000
-        //
-        // let min_cost = dijkstra()
-        //
         let maze = Maze::parse(&input);
         let reindeer = Reindeer {
             loc: maze.start,
             dir: Direction::Right,
         };
 
-        let result = dijkstra(
+        let (_, minimum_cost) = dijkstra(
             &reindeer,
             |reindeer| reindeer.successors(&maze),
             |reindeer| reindeer.loc == maze.end,
-        );
+        )
+        .unwrap();
 
-        Ok(result.unwrap().1)
+        Ok(minimum_cost)
     }
 
     #[cfg(test)]
@@ -240,8 +235,7 @@ fn djikstra(
     end: Coord,
     maze: &Maze,
 ) -> Option<(HashMap<Reindeer, HashSet<Reindeer>>, usize)> {
-    // Changed type
-    let mut predecessors: HashMap<Reindeer, HashSet<Reindeer>> = HashMap::new(); // Changed type
+    let mut predecessors: HashMap<Reindeer, HashSet<Reindeer>> = HashMap::new();
     let mut cost_so_far: HashMap<Reindeer, usize> = HashMap::new();
     let mut pq = BinaryHeap::new();
     let start_state = State {
@@ -267,14 +261,11 @@ fn djikstra(
                 Some(&current_cost) => {
                     if new_cost < current_cost {
                         cost_so_far.insert(next_reindeer, new_cost);
-                        predecessors
-                            .entry(next_reindeer)
-                            .or_insert_with(HashSet::new)
-                            .clear();
-                        predecessors
-                            .entry(next_reindeer)
-                            .or_insert_with(HashSet::new)
-                            .insert(reindeer);
+                        predecessors.insert(next_reindeer, HashSet::from_iter([reindeer]));
+                        pq.push(State {
+                            reindeer: next_reindeer,
+                            cost: new_cost,
+                        })
                     } else if new_cost == current_cost {
                         predecessors
                             .entry(next_reindeer)
@@ -300,12 +291,10 @@ fn djikstra(
     None
 }
 
-// You'll need to modify bfs_track as well to work with Reindeer states
 fn bfs_track(predecessors: &HashMap<Reindeer, HashSet<Reindeer>>, end: Coord) -> usize {
     let mut queue = VecDeque::new();
     let mut visited = HashSet::new();
 
-    // Find all end states (any direction at the end coordinate)
     let end_states: Vec<_> = predecessors
         .keys()
         .filter(|r| r.loc == end)
@@ -327,19 +316,13 @@ fn bfs_track(predecessors: &HashMap<Reindeer, HashSet<Reindeer>>, end: Coord) ->
         }
     }
 
-    // Count unique locations (if you only want physical positions)
     visited.iter().map(|r| r.loc).collect::<HashSet<_>>().len()
-    // Or count all states including directions if that's what you need:
-    // visited.len()
 }
 
 pub mod part2 {
-    use std::collections::HashMap;
 
     use super::*;
-    use itertools::Itertools;
     use miette::Result;
-    use pathfinding::prelude::*;
 
     #[tracing::instrument]
     pub fn process(input: &str) -> Result<usize> {
@@ -349,28 +332,7 @@ pub mod part2 {
             dir: Direction::Right,
         };
 
-        let maze = Maze::parse(&input);
-        let reindeer = Reindeer {
-            loc: maze.start,
-            dir: Direction::Right,
-        };
-
-        // let result = dijkstra(
-        //     &reindeer,
-        //     |reindeer| reindeer.successors(&maze),
-        //     |reindeer| reindeer.loc == maze.end,
-        // );
         let predecessors = djikstra(reindeer, maze.end, &maze);
-        dbg!(&predecessors);
-
-        // let path = predecessors
-        //     .unwrap()
-        //     .0
-        //     .values()
-        //     .flat_map(|c| c.iter().copied().collect::<Vec<Coord>>())
-        //     .dedup()
-        //     .count();
-
         let path_cells = bfs_track(&predecessors.unwrap().0, maze.end);
 
         Ok(path_cells)
@@ -398,6 +360,7 @@ pub mod part2 {
 #.###.#.#.#.#.#
 #S..#.....#...#
 ###############";
+
             assert_eq!(45, process(input)?);
             Ok(())
         }
